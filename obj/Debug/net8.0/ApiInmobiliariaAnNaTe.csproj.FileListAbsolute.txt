@@ -133,3 +133,4 @@ C:\Users\Usuario\ApiInmobiliariaAnNaTe\bin\Debug\net8.0\Google.Cloud.Storage.V1.
 C:\Users\Usuario\ApiInmobiliariaAnNaTe\bin\Debug\net8.0\BouncyCastle.Cryptography.dll
 C:\Users\Usuario\ApiInmobiliariaAnNaTe\bin\Debug\net8.0\MailKit.dll
 C:\Users\Usuario\ApiInmobiliariaAnNaTe\bin\Debug\net8.0\MimeKit.dll
+C:\Users\Usuario\ApiInmobiliariaAnNaTe\obj\Debug\net8.0\ApiInmobiliariaAnNaTe.sourcelink.json

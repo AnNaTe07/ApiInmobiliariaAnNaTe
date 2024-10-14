@@ -11,8 +11,6 @@ using System.Net.Http.Headers;
 using Google.Cloud.Storage.V1;
 using MailKit.Net.Smtp;
 using MimeKit;
-
-
 using Newtonsoft.Json;
 
 namespace ApiInmobiliariaAnNaTe.Controllers;
@@ -34,6 +32,13 @@ public class PropietarioController : ControllerBase
         _storageClient = storageClient;
     }
 
+    /*   [HttpGet]
+      public async Task<IActionResult> GetPropietarios()  // Se usa async porque es una consulta a una base de datos asíncronamente
+      {
+          var propietarios = await _context.Propietarios.ToListAsync();  // Recupera todos los propietarios de la base de datos
+
+          return Ok(propietarios);  // Devuelve los propietarios en formato JSON
+      } */
     [HttpPost("register")]
     public IActionResult Register([FromBody] Propietario propietario)
     {

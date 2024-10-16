@@ -9,15 +9,15 @@ using ApiInmobiliariaAnNaTe.Models;
 using ApiInmobiliariaAnNaTe.utils;
 using System.Net.Http.Headers;
 using Google.Cloud.Storage.V1;
-using MailKit.Net.Smtp;
-using MimeKit;
+using ApiInmobiliariaAnNaTe.Services;
 using Newtonsoft.Json;
 
 namespace ApiInmobiliariaAnNaTe.Controllers;
 
 
-[ApiController]
+
 [Route("api/propietario")]
+[ApiController]
 public class PropietarioController : ControllerBase
 {
     private readonly DataContext _context;
@@ -59,8 +59,8 @@ public class PropietarioController : ControllerBase
 
         try
         {
-            _context.Propietarios.Add(propietario);
-            _context.SaveChanges();
+            _context.Propietarios.Add(propietario);//agrego el propietario
+            _context.SaveChanges();//guardo cambios
             return Ok("Registro exitoso.");
         }
         catch (Exception ex)
@@ -93,7 +93,7 @@ public class PropietarioController : ControllerBase
 
         // Genera el token JWT
         var token = GenerateJwtToken(propietario);
-        return Ok(new { Token = token });
+        return Ok(token);
     }
 
     private string GenerateJwtToken(Propietario propietario)
@@ -126,6 +126,7 @@ public class PropietarioController : ControllerBase
     {
         try
         {
+            //var email = "cyndi@email.com";
             var email = User.FindFirst(ClaimTypes.Email)?.Value;
             var propietario = await _context.Propietarios.SingleOrDefaultAsync(x => x.Email == email);
 
@@ -203,7 +204,7 @@ public class PropietarioController : ControllerBase
         throw new Exception($"Error al subir la imagen: {response.ReasonPhrase}");
     }
 
-    [HttpPost("avatar")]
+    [HttpPatch("avatar")]
     [Authorize]
     public async Task<IActionResult> Avatar(IFormFile file)
     {
@@ -284,7 +285,7 @@ public class PropietarioController : ControllerBase
 
         return Ok("Avatar eliminado correctamente.");
     }
-    [HttpPost("pass")]
+    [HttpPatch("pass")]
     [Authorize]
     public async Task<IActionResult> CambiarPass([FromBody] CambioPass pass)
     {
@@ -321,6 +322,7 @@ public class PropietarioController : ControllerBase
         return Ok("Contraseña cambiada correctamente.");
     }
 
+
     [HttpPost("olvidoPass")]
     public async Task<IActionResult> OlvidoPass([FromBody] OlvidaPass dto)
     {
@@ -334,56 +336,21 @@ public class PropietarioController : ControllerBase
         // Genera el token
         var token = GenerateJwtToken(propietario);
 
-        //enlace para el restablecimiento de la contraseña
+        // Enlace para el restablecimiento de la contraseña
         var resetLink = $"http://localhost:5000/restablecerPass?token={token}&email={dto.Email}";
 
-        // Crear y enviar el correo
-        var message = new MimeMessage();
-        message.From.Add(new MailboxAddress("Andrea Natalia", "andreanataliatello@outlook.com"));
-        message.To.Add(new MailboxAddress("", dto.Email));
-        message.Subject = "Restablecimiento de contraseña";
+        // Crear instancia de Email y enviar el correo
+        var emailService = new Email();
+        await emailService.SendResetPasswordEmail(dto.Email, token); // Usa el método de la clase Email
 
-        /*   message.Body = new TextPart("plain")
-          {
-              Text = $"Haz clic en el siguiente enlace para restablecer tu contraseña: {resetLink}"
-          }; */
-        message.Body = new TextPart("html")
-        {
-            Text = $@"
-        <html>
-        <body>
-            <p>Haz solicitado restablecer tu contraseña? Si es así, haz clic en el siguiente botón para confirmar el restablecimiento de tu contraseña:</p>
-            <a href='{resetLink}' style='padding: 10px; background-color: blue; color: white; text-decoration: none;'>Sí, restablecer contraseña</a>
-
-            <p>Si no has solicitado restablecer tu contraseña, puedes ignorar este correo.</p>
-        </body>
-        </html>"
-        };
-        using (var client = new SmtpClient())
-        {
-            try
-            {
-                await client.ConnectAsync("smtp.gmail.com", 587, MailKit.Security.SecureSocketOptions.StartTls);
-                await client.AuthenticateAsync("toony1717@gmail.com", "xsip fkbb oiqw zosc");//contraseña de aplicacion
-                await client.SendAsync(message);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al enviar el correo: {ex.Message}");
-            }
-            finally
-            {
-                await client.DisconnectAsync(true);
-            }
-
-            return Ok("Se ha enviado un correo para restablecer la contraseña.");
-        }
+        return Ok("Se ha enviado un correo para restablecer la contraseña.");
     }
+
 
     [HttpPost("restablecerPass")]
     public async Task<IActionResult> RestablecerPass([FromBody] RestablecerPass dto)
     {
-        // para obtener el token del encabezado de autorización...
+        // para obtener el token del encabezado de autorización
         var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
         var propietario = await _context.Propietarios.SingleOrDefaultAsync(x => x.Email == dto.Email);
@@ -433,5 +400,9 @@ public class PropietarioController : ControllerBase
         return expirationDate > DateTime.UtcNow; // Compara con la hora actual en UTC
     }
 
-
+    [HttpGet("otro-endpoint")]
+    public IActionResult OtroEndpoint()
+    {
+        return Ok("Este es otro endpoint.");
+    }
 }

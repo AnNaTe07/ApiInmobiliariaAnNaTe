@@ -14,7 +14,7 @@ using System.Net.Http.Headers;
 namespace ApiInmobiliariaAnNaTe.Controllers;
 
 [ApiController]
-[Route("api/inmueble")]
+[Route("api/[controller]")]
 public class InmuebleController : ControllerBase
 {
     private readonly DataContext _context;
@@ -52,6 +52,39 @@ public class InmuebleController : ControllerBase
             return BadRequest(e.Message);
         }
     }
+
+    [HttpGet("{id}")]
+    [Authorize]
+    public async Task<IActionResult> ObtenerInmueble(int id)
+    {
+        // Verifica que el usuario esté autenticado
+        if (!User.Identity.IsAuthenticated)
+        {
+            return Unauthorized("Usuario no autenticado.");
+        }
+
+        // Obtiene el correo electrónico del usuario autenticado
+        var email = User.FindFirst(ClaimTypes.Email)?.Value;
+        var propietarioLogin = await _context.Propietarios.SingleOrDefaultAsync(x => x.Email == email);
+
+        if (propietarioLogin == null)
+        {
+            return BadRequest("Datos incorrectos.");
+        }
+
+        // Busca el inmueble que pertenece a este propietario
+        var inmueble = await _context.Inmuebles
+            .SingleOrDefaultAsync(i => i.Id == id && i.IdPropietario == propietarioLogin.Id);
+
+        if (inmueble == null)
+        {
+            return NotFound("Inmueble no encontrado o no pertenece al propietario.");
+        }
+
+        // Retorna el inmueble encontrado
+        return Ok(inmueble);
+    }
+
 
     [HttpPut("estado/{id}")]
     [Authorize]
@@ -101,7 +134,7 @@ public class InmuebleController : ControllerBase
         throw new Exception($"Error al subir la imagen: {response.ReasonPhrase}");
     }
 
-    [HttpPost("foto/{id}")]
+    [HttpPatch("foto/{id}")]
     [Authorize]
     public async Task<IActionResult> Foto(IFormFile file, int id)
     {
@@ -147,6 +180,20 @@ public class InmuebleController : ControllerBase
     [Authorize]
     public async Task<IActionResult> CrearInmuebleConFoto([FromForm] CrearInmuebleDto nuevoInmuebleDto)
     {
+        // Verifica que el usuario esté autenticado
+        if (!User.Identity.IsAuthenticated)
+        {
+            return Unauthorized("Usuario no autenticado.");
+        }
+
+        var email = User.FindFirst(ClaimTypes.Email)?.Value;
+        var propietarioLogin = await _context.Propietarios.SingleOrDefaultAsync(x => x.Email == email);
+
+        if (propietarioLogin == null)
+        {
+            return BadRequest("Datos incorrectos.");
+        }
+
         if (nuevoInmuebleDto == null)
         {
             return BadRequest("Los datos del inmueble son incorrectos.");
@@ -163,7 +210,7 @@ public class InmuebleController : ControllerBase
             Longitud = nuevoInmuebleDto.Longitud,
             Superficie = nuevoInmuebleDto.Superficie,
             Precio = nuevoInmuebleDto.Precio,
-            IdPropietario = nuevoInmuebleDto.IdPropietario,
+            IdPropietario = propietarioLogin.Id, // Asigno desde el propietario autenticado
             Estado = false // por defecto deshabilitado
         };
 
@@ -171,7 +218,7 @@ public class InmuebleController : ControllerBase
         _context.Inmuebles.Add(inmueble);
         await _context.SaveChangesAsync();
 
-        // Si se proporciona una foto,se sube
+        // Si se proporciona una foto, se sube
         if (nuevoInmuebleDto.Foto != null)
         {
             string imageUrl;
@@ -187,8 +234,8 @@ public class InmuebleController : ControllerBase
             }
         }
 
-        // Retorna el inmueble creado
-        return Ok(inmueble);
+        // Retorna el inmueble creado con un código 201 Created
+        return CreatedAtAction(nameof(CrearInmuebleConFoto), new { id = inmueble.Id }, inmueble);
     }
 
     [HttpGet("contrato/{id}")]

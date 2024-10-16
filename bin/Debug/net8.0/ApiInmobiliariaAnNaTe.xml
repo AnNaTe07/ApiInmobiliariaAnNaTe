@@ -1,0 +1,188 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ApiInmobiliariaAnNaTe</name>
+    </assembly>
+    <members>
+        <member name="T:ApiInmobiliariaAnNaTe.Migrations.InitialCreate">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.InitialCreate.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.InitialCreate.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.InitialCreate.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ApiInmobiliariaAnNaTe.Migrations.UpdateSaltColumn">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.UpdateSaltColumn.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.UpdateSaltColumn.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.UpdateSaltColumn.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ApiInmobiliariaAnNaTe.Migrations.UpdatePropietarioModel">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.UpdatePropietarioModel.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.UpdatePropietarioModel.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.UpdatePropietarioModel.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ApiInmobiliariaAnNaTe.Migrations.AddSaltColumn">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.AddSaltColumn.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.AddSaltColumn.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.AddSaltColumn.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ApiInmobiliariaAnNaTe.Migrations.NombreDeLaMigracion">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.NombreDeLaMigracion.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.NombreDeLaMigracion.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.NombreDeLaMigracion.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ApiInmobiliariaAnNaTe.Migrations.Tipo">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.Tipo.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.Tipo.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.Tipo.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ApiInmobiliariaAnNaTe.Migrations.AgregarTipoInmueble">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.AgregarTipoInmueble.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.AgregarTipoInmueble.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.AgregarTipoInmueble.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ApiInmobiliariaAnNaTe.Migrations.modificarContrato">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.modificarContrato.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.modificarContrato.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.modificarContrato.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ApiInmobiliariaAnNaTe.Migrations.correccionTipo">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.correccionTipo.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.correccionTipo.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.correccionTipo.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ApiInmobiliariaAnNaTe.Migrations.Tipo2">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.Tipo2.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.Tipo2.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.Tipo2.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ApiInmobiliariaAnNaTe.Migrations.borrarDatos">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.borrarDatos.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.borrarDatos.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.borrarDatos.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ApiInmobiliariaAnNaTe.Migrations.CorreccionDecimal3">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.CorreccionDecimal3.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.CorreccionDecimal3.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.CorreccionDecimal3.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ApiInmobiliariaAnNaTe.Migrations.CambioLatLong">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.CambioLatLong.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.CambioLatLong.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.CambioLatLong.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ApiInmobiliariaAnNaTe.Migrations.Fecha">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.Fecha.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.Fecha.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.Fecha.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="T:ApiInmobiliariaAnNaTe.Migrations.Pagos">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.Pagos.Up(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.Pagos.Down(Microsoft.EntityFrameworkCore.Migrations.MigrationBuilder)">
+            <inheritdoc />
+        </member>
+        <member name="M:ApiInmobiliariaAnNaTe.Migrations.Pagos.BuildTargetModel(Microsoft.EntityFrameworkCore.ModelBuilder)">
+            <inheritdoc />
+        </member>
+    </members>
+</doc>

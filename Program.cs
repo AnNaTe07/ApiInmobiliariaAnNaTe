@@ -7,10 +7,14 @@ using Microsoft.EntityFrameworkCore;
 using Google.Cloud.Storage.V1;
 using ApiInmobiliariaAnNaTe.Services;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
+
 
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://localhost:5000", "https://localhost:5043", "http://*:5000", "https://*:5043");
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 
 // Inicializa Firebase
 FirebaseApp.Create(new AppOptions()
@@ -51,22 +55,30 @@ builder.Services.AddSwaggerGen(c =>
             new string[] {}
         }
     });
+
+    // Incluir comentarios XML
+    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    c.IncludeXmlComments(xmlPath);
 });
 
 // Configuración de CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAllOrigins", builder =>
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader());
-
-
+    options.AddPolicy("AllowAll",
+        builder =>
+        {
+            builder.AllowAnyOrigin()
+                   .AllowAnyMethod()
+                   .AllowAnyHeader();
+        });
 });
 
 
 
+
 // Configuración de JWT
+
 builder.Services.AddAuthentication(x =>
 {
     x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -98,29 +110,36 @@ builder.Services.AddDbContext<DataContext>(options =>
 builder.Services.AddScoped<Email>();
 
 var app = builder.Build();
+app.UseDeveloperExceptionPage();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage(); // Muestra detalles del error en desarrollo
     app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Mi API V1");
-        c.RoutePrefix = string.Empty; // Para que Swagger UI esté en la raíz
-    });
+    app.UseSwaggerUI();
 }
 
 // Middleware
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseRouting();
-app.UseCors("AllowAllOrigins");
+
+app.Use(async (context, next) =>
+{
+    Console.WriteLine($"Solicitud: {context.Request.Method} {context.Request.Path}");
+    await next.Invoke();
+});
+app.UseCors(builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 
 // Endpoints
 app.MapControllers();
+app.MapGet("/test", () => "El endpoint de prueba está funcionando.");
+app.UseDeveloperExceptionPage();
+
+
 app.MapGet("/weatherforecast", () =>
 {
     var summaries = new[]
@@ -148,3 +167,7 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
+
+
+
+

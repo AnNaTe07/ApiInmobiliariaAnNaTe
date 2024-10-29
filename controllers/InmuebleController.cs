@@ -26,23 +26,30 @@ public class InmuebleController : ControllerBase
         _logger = logger;
     }
 
-    [HttpGet("get")]
+    [HttpGet]
     [Authorize]
-    public async Task<IActionResult> GetInmuebles()
+    public async Task<IActionResult> ObtenerInmueblesDelPropietario()
     {
         try
         {
             var email = User.FindFirstValue(ClaimTypes.Email);
-            if (string.IsNullOrEmpty(email)) return Unauthorized("No se pudo obtener el correo del propietario.");
+            if (string.IsNullOrEmpty(email))
+                return Unauthorized("No se pudo obtener el correo del propietario.");
 
             var inmuebles = await _context.Inmuebles
                 .Include(i => i.Tipo)
                 .Include(i => i.PropietarioInmueble)
-                .Where(i => i.PropietarioInmueble.Email == email)
+                .Select(inmueble => new InmuebleContrato
+                {
+                    Inmueble = inmueble,
+                    Contrato = _context.Contratos
+                        .Where(c => c.InmuebleId == inmueble.Id)
+                        .OrderByDescending(c => c.Desde)
+                        .FirstOrDefault()
+                })
                 .ToListAsync();
 
-
-            if (inmuebles == null || !inmuebles.Any())
+            if (!inmuebles.Any())
                 return NotFound("No se encontraron inmuebles.");
 
             return Ok(inmuebles);
@@ -53,7 +60,7 @@ public class InmuebleController : ControllerBase
         }
     }
 
-    [HttpGet("{id}")]
+    [HttpGet("get/{id}")]
     [Authorize]
     public async Task<IActionResult> ObtenerInmueble(int id)
     {
@@ -85,7 +92,6 @@ public class InmuebleController : ControllerBase
         return Ok(inmueble);
     }
 
-
     [HttpPut("estado/{id}")]
     [Authorize]
     public async Task<IActionResult> Estado(int id)
@@ -109,10 +115,11 @@ public class InmuebleController : ControllerBase
         return Ok(inmueble);
     }
 
-    private async Task<string> UploadToFirebase(IFormFile file)
+    private async Task<string> UploadToFirebase(IFormFile file, int inmuebleId)
     {
-        var bucketName = "appinmobiliaria-2d959.appspot.com"; //nombre de bucket
-        var storageUrl = $"https://firebasestorage.googleapis.com/v0/b/{bucketName}/o?name=inmuebles/{Uri.EscapeDataString(file.FileName)}";
+        var bucketName = "appinmobiliaria-2d959.appspot.com"; // nombre de bucket
+        var uniqueFileName = $"inmuebles/inmueble_{inmuebleId}_{Uri.EscapeDataString(file.FileName)}";
+        var storageUrl = $"https://firebasestorage.googleapis.com/v0/b/{bucketName}/o?name={uniqueFileName}";
 
         using var httpClient = new HttpClient();
         using var stream = new MemoryStream();
@@ -125,14 +132,14 @@ public class InmuebleController : ControllerBase
         var response = await httpClient.PostAsync(storageUrl, content);
         if (response.IsSuccessStatusCode)
         {
-            var responseBody = await response.Content.ReadAsStringAsync();
-            dynamic jsonResponse = JsonConvert.DeserializeObject(responseBody);
-            // Retorna la URL de acceso a la imagen
-            return $"https://firebasestorage.googleapis.com/v0/b/{bucketName}/o/inmuebles%2F{Uri.EscapeDataString(file.FileName)}?alt=media";
+            return $"https://firebasestorage.googleapis.com/v0/b/{bucketName}/o/{Uri.EscapeDataString(uniqueFileName)}?alt=media";
         }
 
-        throw new Exception($"Error al subir la imagen: {response.ReasonPhrase}");
+        var errorMessage = await response.Content.ReadAsStringAsync();
+        throw new Exception($"Error al subir la imagen: {response.ReasonPhrase}, Detalle: {errorMessage}");
     }
+
+
 
     [HttpPatch("foto/{id}")]
     [Authorize]
@@ -143,11 +150,11 @@ public class InmuebleController : ControllerBase
             return BadRequest("No se ha seleccionado ningún archivo.");
         }
 
-        // Lógica para subir la imagen a Firebase
+        // Para subir la imagen a Firebase usando el ID del inmueble
         string imageUrl;
         try
         {
-            imageUrl = await UploadToFirebase(file);
+            imageUrl = await UploadToFirebase(file, id);
         }
         catch (Exception e)
         {
@@ -178,73 +185,155 @@ public class InmuebleController : ControllerBase
 
     [HttpPost("crear")]
     [Authorize]
-    public async Task<IActionResult> CrearInmuebleConFoto([FromForm] CrearInmuebleDto nuevoInmuebleDto)
+    public async Task<IActionResult> CrearInmuebleConFoto([FromForm] int usoInmuebleId, [FromForm] int tipoId, [FromForm] int ambientes,
+    [FromForm] string direccion, [FromForm] decimal latitud, [FromForm] decimal longitud,
+    [FromForm] decimal precio, [FromForm] decimal superficie, [FromForm] IFormFile foto)
     {
-        // Verifica que el usuario esté autenticado
+        // Verifico que el usuario esté autenticado
         if (!User.Identity.IsAuthenticated)
         {
             return Unauthorized("Usuario no autenticado.");
         }
 
+        // Obtengo el ID del propietario desde las claims
         var email = User.FindFirst(ClaimTypes.Email)?.Value;
-        var propietarioLogin = await _context.Propietarios.SingleOrDefaultAsync(x => x.Email == email);
+        var propietarioId = await _context.Propietarios.SingleOrDefaultAsync(x => x.Email == email);
 
-        if (propietarioLogin == null)
+        if (propietarioId == null)
         {
             return BadRequest("Datos incorrectos.");
         }
-
-        if (nuevoInmuebleDto == null)
-        {
-            return BadRequest("Los datos del inmueble son incorrectos.");
-        }
-
-        // Crea la entidad Inmueble
+        // Creo una nueva instancia de Inmueble
         var inmueble = new Inmueble
         {
-            Uso = nuevoInmuebleDto.Uso,
-            Direccion = nuevoInmuebleDto.Direccion,
-            TipoId = nuevoInmuebleDto.TipoId,
-            Ambientes = nuevoInmuebleDto.Ambientes,
-            Latitud = nuevoInmuebleDto.Latitud,
-            Longitud = nuevoInmuebleDto.Longitud,
-            Superficie = nuevoInmuebleDto.Superficie,
-            Precio = nuevoInmuebleDto.Precio,
-            IdPropietario = propietarioLogin.Id, // Asigno desde el propietario autenticado
-            Estado = false // por defecto deshabilitado
+            UsoInmuebleId = usoInmuebleId,
+            Direccion = direccion,
+            TipoId = tipoId,
+            Ambientes = ambientes,
+            Latitud = latitud,
+            Longitud = longitud,
+            Superficie = superficie,
+            Precio = precio,
+            IdPropietario = propietarioId.Id,
+            Estado = false
         };
 
-        // Agrego el inmueble a la base de datos
+        // Agrego el inmueble a la base de datos primero para obtener su ID
         _context.Inmuebles.Add(inmueble);
         await _context.SaveChangesAsync();
 
-        // Si se proporciona una foto, se sube
-        if (nuevoInmuebleDto.Foto != null)
+        // Si se proporciona una foto...
+        if (foto != null && foto.Length > 0)
         {
-            string imageUrl;
             try
             {
-                imageUrl = await UploadToFirebase(nuevoInmuebleDto.Foto);
-                inmueble.Foto = imageUrl; // Actualiza URL de la foto en el inmueble
-                await _context.SaveChangesAsync(); // Guarda cambios en la base de datos
+                var imageUrl = await UploadToFirebase(foto, inmueble.Id);
+                inmueble.Foto = imageUrl; // URL de la foto
+                await _context.SaveChangesAsync(); // Guardar el cambio de foto
             }
             catch (Exception e)
             {
                 return BadRequest("Error al subir la imagen: " + e.Message);
             }
         }
+        else
+        {
+            return BadRequest("No se ha proporcionado una imagen válida.");
+        }
 
-        // Retorna el inmueble creado con un código 201 Created
         return CreatedAtAction(nameof(CrearInmuebleConFoto), new { id = inmueble.Id }, inmueble);
     }
+
+    [HttpGet("alquilados")]
+    [Authorize]
+    public async Task<IActionResult> InmueblesAlquilados()
+    {
+        try
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrEmpty(email))
+                return Unauthorized("No se pudo obtener el correo del propietario.");
+
+            // Obtengo el ID del propietario
+            var propietario = await _context.Propietarios
+                .FirstOrDefaultAsync(p => p.Email == email);
+
+            if (propietario == null)
+                return NotFound("Propietario no encontrado.");
+
+            // Obtengo contratos activos y también incluyo el tipo del inmueble
+            var contratosActivos = await _context.Contratos
+                .Where(c => c.Inmu.IdPropietario == propietario.Id && DateTime.Now >= c.Desde && DateTime.Now <= c.Hasta)
+                .Include(c => c.Inqui) // Incluyo el inquilino
+                .Include(c => c.Inmu)  // Incluyo el inmueble
+                .ThenInclude(i => i.Tipo) //incluyo el tipo del inmueble asociado a inmueble
+                .ToListAsync();
+
+            // Combino inmuebles y contratos
+            var inmuebleContratos = contratosActivos.Select(c => new InmuebleContrato
+            {
+                Inmueble = c.Inmu,
+                Contrato = c
+            }).ToList();
+
+            if (!inmuebleContratos.Any())
+                return NotFound("No se encontraron inmuebles alquilados para el propietario.");
+
+            return Ok(inmuebleContratos);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);//aqui explota!!!
+        }
+    }
+
+    [HttpGet("inquilino/{inmuebleId}")]
+    [Authorize]
+    public async Task<IActionResult> ObtenerInquilino(int inmuebleId)
+    {
+        try
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email);
+            if (string.IsNullOrEmpty(email))
+                return Unauthorized("No se pudo obtener el correo del propietario.");
+
+            // propietario logueado
+            var propietario = await _context.Propietarios
+                .FirstOrDefaultAsync(p => p.Email == email);
+
+            if (propietario == null)
+                return NotFound("Propietario no encontrado.");
+
+            // fecha actual
+            var fechaActual = DateTime.Now;
+
+            // contrato activo para el inmueble especificado
+            var contrato = await _context.Contratos
+                .Include(c => c.Inqui) // Incluyo el inquilino
+                .FirstOrDefaultAsync(c => c.InmuebleId == inmuebleId
+                    && c.Desde <= fechaActual
+                    && c.Hasta >= fechaActual);
+
+            if (contrato == null)
+                return NotFound("No se encontró un contrato activo para el inmueble especificado.");
+
+            // Retorno la información del inquilino
+            return Ok(contrato.Inqui);
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+
 
     [HttpGet("contrato/{id}")]
     [Authorize]
     public async Task<IActionResult> ObtenerContratoPorInmueble(int id)
     {
         var contrato = await _context.Contratos
-            .Include(c => c.Inqui) // Incluye el inquilino
-            .Include(c => c.Inmu)  // Incluye el inmueble
+            .Include(c => c.Inqui) // Incluyo el inquilino
+            .Include(c => c.Inmu)  // Incluyo el inmueble
             .FirstOrDefaultAsync(c => c.InmuebleId == id && DateTime.Now >= c.Desde && DateTime.Now <= c.Hasta);
 
         if (contrato == null)
@@ -252,35 +341,64 @@ public class InmuebleController : ControllerBase
             return NotFound("No hay contrato activo para este inmueble.");
         }
 
-        // Devolver el contrato con las propiedades relacionadas
+        // Retorna el contrato con las propiedades relacionadas
         return Ok(new
         {
             contrato.Id,
             contrato.Desde,
             contrato.Hasta,
             contrato.Monto,
-            InquilinoNombre = contrato.Inqui != null ? contrato.Inqui.NombreCompleto : "No disponible",
-            DireccionInmueble = contrato.DireccionInmueble
+            inquilino = contrato.Inqui != null ? contrato.Inqui.NombreCompleto : "No disponible",
+            inmueble = contrato.DireccionInmueble
         });
     }
 
-    [HttpGet("contrato/{contratoId}/pagos")]
+    [HttpGet("{contratoId}/pagos")]
     [Authorize]
     public async Task<IActionResult> ObtenerPagosPorContrato(int contratoId)
     {
-        // Busca los pagos asociados al contrato, incluyendo el contrato y el inmueble relacionado
+        var email = User.FindFirst(ClaimTypes.Email)?.Value;
+
+        if (string.IsNullOrEmpty(email))
+        {
+            return Unauthorized("No se pudo determinar el propietario.");
+        }
+
+        var propietarioIdInt = await _context.Propietarios
+            .Where(x => x.Email == email)
+            .Select(x => x.Id)
+            .FirstOrDefaultAsync();
+
+        if (propietarioIdInt == 0) //si no se encontró el propietario
+        {
+            return NotFound("Propietario no encontrado.");
+        }
+
+        //inmueble asociado al contrato
+        var inmuebleId = await _context.Contratos
+            .Where(c => c.Id == contratoId)
+            .Select(c => c.InmuebleId)
+            .FirstOrDefaultAsync();
+
+        if (inmuebleId == 0) //si no se encontró el inmueble
+        {
+            return NotFound("Inmueble no encontrado para el contrato.");
+        }
+
+        //pagos asociados al contrato
         var pagos = await _context.Pagos
             .Include(p => p.Contrato) // Incluye el contrato
             .ThenInclude(c => c.Inmu) // Incluye el inmueble del contrato
-            .Where(p => p.ContratoId == contratoId)
+            .Where(p => p.ContratoId == contratoId && inmuebleId == p.Contrato.InmuebleId &&
+                _context.Inmuebles
+                    .Any(i => i.Id == inmuebleId && i.IdPropietario == propietarioIdInt)) // Verifica que el inmueble pertenezca al propietario
             .ToListAsync();
 
-        if (pagos == null || !pagos.Any())
+        if (!pagos.Any())
         {
             return NotFound("No se encontraron pagos para este contrato.");
         }
 
-        // Proporciona la respuesta con la información de los pagos
         var pagosDto = pagos.Select(p => new
         {
             p.Id,
@@ -288,11 +406,10 @@ public class InmuebleController : ControllerBase
             p.Fecha,
             p.Monto,
             p.ContratoId,
-            DireccionContrato = p.Contrato?.Inmu?.Direccion ?? "Dirección no disponible" // Usa la dirección del inmueble si está disponible
+            Direccion = p.Contrato.Inmu.Direccion //dirección del inmueble
         }).ToList();
 
         return Ok(pagosDto);
     }
-
 
 }

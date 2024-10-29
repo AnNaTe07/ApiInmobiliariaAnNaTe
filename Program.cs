@@ -8,13 +8,21 @@ using Google.Cloud.Storage.V1;
 using ApiInmobiliariaAnNaTe.Services;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using System.Globalization;
 
+// Establecer la cultura a "en-US" para usar el punto como separador decimal
+Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
 
 
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.UseUrls("http://localhost:5000", "https://localhost:5043", "http://*:5000", "https://*:5043");
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
+builder.Services.AddLogging();
+builder.Configuration.AddUserSecrets<Program>();
+var passDeAplicacion = builder.Configuration["miapp:pass_de_aplicacion"];
+
 
 // Inicializa Firebase
 FirebaseApp.Create(new AppOptions()
@@ -73,8 +81,6 @@ builder.Services.AddCors(options =>
                    .AllowAnyHeader();
         });
 });
-
-
 
 
 // Configuración de JWT
@@ -136,7 +142,6 @@ app.UseAuthorization();
 
 // Endpoints
 app.MapControllers();
-app.MapGet("/test", () => "El endpoint de prueba está funcionando.");
 app.UseDeveloperExceptionPage();
 
 

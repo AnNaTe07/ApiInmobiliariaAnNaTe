@@ -23,51 +23,17 @@ public class PropietarioController : ControllerBase
     private readonly DataContext _context;
     private readonly ILogger<PropietarioController> _logger;
     private readonly StorageClient _storageClient;
+    private readonly Email _emailService;
 
 
-    public PropietarioController(DataContext context, ILogger<PropietarioController> logger, StorageClient storageClient)
+    public PropietarioController(DataContext context, ILogger<PropietarioController> logger, StorageClient storageClient, IConfiguration configuration)
     {
         _context = context;
         _logger = logger;
         _storageClient = storageClient;
+        _emailService = new Email(configuration);
     }
 
-    /*   [HttpGet]
-      public async Task<IActionResult> GetPropietarios()  // Se usa async porque es una consulta a una base de datos asíncronamente
-      {
-          var propietarios = await _context.Propietarios.ToListAsync();  // Recupera todos los propietarios de la base de datos
-
-          return Ok(propietarios);  // Devuelve los propietarios en formato JSON
-      } */
-    [HttpPost("register")]
-    public IActionResult Register([FromBody] Propietario propietario)
-    {
-        if (string.IsNullOrEmpty(propietario.Pass))
-            return BadRequest("La contraseña es obligatoria.");
-
-        // Verifico si el email ya está en uso
-        if (_context.Propietarios.Any(p => p.Email == propietario.Email))
-            return BadRequest("Email ya está en uso.");
-
-        // Hashear la contraseña y obtener el salt
-        var hashResult = PasswordUtils.HashPassword(propietario.Pass);
-        propietario.Pass = hashResult.hashedPassword;
-        propietario.Salt = hashResult.salt;
-
-        // Verifico el valor del salt
-        //Console.WriteLine($"Salt generado: {propietario.Salt}");
-
-        try
-        {
-            _context.Propietarios.Add(propietario);//agrego el propietario
-            _context.SaveChanges();//guardo cambios
-            return Ok("Registro exitoso.");
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, "Error interno del servidor: " + ex.Message);
-        }
-    }
 
     [HttpPost("login")]
     public IActionResult Login([FromBody] Login login)
@@ -84,7 +50,7 @@ public class PropietarioController : ControllerBase
         //Console.WriteLine($"Nombre: {propietario.Nombre}, ID: {propietario.Id}, Email: {propietario.Email}, Estado: {propietario.Estado}");
 
 
-        // Verifica la contraseña
+        // Verifico pass
         if (!PasswordUtils.VerifyPassword(login.Pass, propietario.Pass, propietario.Salt))
         {
             return Unauthorized("Credenciales inválidas.");
@@ -126,7 +92,6 @@ public class PropietarioController : ControllerBase
     {
         try
         {
-            //var email = "cyndi@email.com";
             var email = User.FindFirst(ClaimTypes.Email)?.Value;
             var propietario = await _context.Propietarios.SingleOrDefaultAsync(x => x.Email == email);
 
@@ -139,7 +104,7 @@ public class PropietarioController : ControllerBase
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error al obtener los datos del perfil."); // Registro el error
+            _logger.LogError(e, "Error al obtener los datos del perfil."); // Registro del error
             return StatusCode(500, "Error al obtener los datos del perfil.");
         }
     }
@@ -150,6 +115,7 @@ public class PropietarioController : ControllerBase
     {
         var email = User.FindFirst(ClaimTypes.Email)?.Value;
         var propietarioLogin = await _context.Propietarios.SingleOrDefaultAsync(x => x.Email == email);
+
         if (propietarioLogin == null || !User.Identity.IsAuthenticated)
         {
             return BadRequest("Datos incorrectos");
@@ -179,15 +145,16 @@ public class PropietarioController : ControllerBase
         return BadRequest("No se pudo actualizar");
     }
 
-    private async Task<string> UploadToFirebase(IFormFile file)
+    private async Task<string> UploadToFirebase(IFormFile file, string propietarioId)
     {
-        var bucketName = "appinmobiliaria-2d959.appspot.com"; //nombre de bucket
-        var storageUrl = $"https://firebasestorage.googleapis.com/v0/b/{bucketName}/o?name=avatars/{Uri.EscapeDataString(file.FileName)}";
+        var bucketName = "appinmobiliaria-2d959.appspot.com";
+        var uniqueFileName = $"avatars/{propietarioId}_avatar.jpg"; // Uso el ID del propietario
+        var storageUrl = $"https://firebasestorage.googleapis.com/v0/b/{bucketName}/o?name={uniqueFileName}";
 
         using var httpClient = new HttpClient();
         using var stream = new MemoryStream();
         await file.CopyToAsync(stream);
-        stream.Position = 0; // Reinicia la posición del stream
+        stream.Position = 0;
 
         using var content = new StreamContent(stream);
         content.Headers.ContentType = new MediaTypeHeaderValue(file.ContentType);
@@ -195,14 +162,13 @@ public class PropietarioController : ControllerBase
         var response = await httpClient.PostAsync(storageUrl, content);
         if (response.IsSuccessStatusCode)
         {
-            var responseBody = await response.Content.ReadAsStringAsync();
-            dynamic jsonResponse = JsonConvert.DeserializeObject(responseBody);
-            // Retorna la URL de acceso a la imagen
-            return $"https://firebasestorage.googleapis.com/v0/b/{bucketName}/o/avatars%2F{Uri.EscapeDataString(file.FileName)}?alt=media";
+            return $"https://firebasestorage.googleapis.com/v0/b/{bucketName}/o/{Uri.EscapeDataString(uniqueFileName)}?alt=media";
         }
 
-        throw new Exception($"Error al subir la imagen: {response.ReasonPhrase}");
+        var errorMessage = await response.Content.ReadAsStringAsync();
+        throw new Exception($"Error al subir la imagen: {response.ReasonPhrase}, Detalle: {errorMessage}");
     }
+
 
     [HttpPatch("avatar")]
     [Authorize]
@@ -213,24 +179,25 @@ public class PropietarioController : ControllerBase
             return BadRequest("No se ha seleccionado ningún archivo.");
         }
 
-        // Lógica para subir la imagen a Firebase
         string imageUrl;
-        try
-        {
-            imageUrl = await UploadToFirebase(file);
-        }
-        catch (Exception e)
-        {
-            return BadRequest("Error al subir la imagen: " + e.Message);
-        }
-
-        // Guarda la URL en la base de datos
         var email = User.FindFirst(ClaimTypes.Email)?.Value;
         var propietario = await _context.Propietarios.SingleOrDefaultAsync(x => x.Email == email);
 
         if (propietario == null)
         {
             return NotFound("Propietario no encontrado.");
+        }
+
+        // ID del propietario para crear el nombre del archivo
+        string propietarioId = propietario.Id.ToString();
+
+        try
+        {
+            imageUrl = await UploadToFirebase(file, propietarioId);
+        }
+        catch (Exception e)
+        {
+            return BadRequest("Error al subir la imagen: " + e.Message);
         }
 
         propietario.Avatar = imageUrl;
@@ -246,6 +213,10 @@ public class PropietarioController : ControllerBase
 
         return Ok(new { Url = imageUrl });
     }
+
+
+
+
     [HttpDelete("avatar")]
     [Authorize]
     public async Task<IActionResult> DeleteAvatar()
@@ -259,7 +230,7 @@ public class PropietarioController : ControllerBase
         }
 
         var avatarUri = new Uri(propietario.Avatar);
-        var objectName = $"avatars/{Path.GetFileName(avatarUri.LocalPath)}"; // Usa LocalPath
+        var objectName = $"avatars/{Path.GetFileName(avatarUri.LocalPath)}";
 
         Console.WriteLine($"Intentando eliminar el objeto: {objectName}");
 
@@ -285,6 +256,7 @@ public class PropietarioController : ControllerBase
 
         return Ok("Avatar eliminado correctamente.");
     }
+
     [HttpPatch("pass")]
     [Authorize]
     public async Task<IActionResult> CambiarPass([FromBody] CambioPass pass)
@@ -297,16 +269,22 @@ public class PropietarioController : ControllerBase
             return NotFound("Propietario no encontrado.");
         }
 
-        // Verifica el pass actual
+        if (pass == null || string.IsNullOrEmpty(pass.PassActual) || string.IsNullOrEmpty(pass.NuevoPass))
+        {
+            return BadRequest("Los campos de contraseña no pueden estar vacíos.");
+        }
+
+
+        // Verifico el pass actual
         if (!PasswordUtils.VerifyPassword(pass.PassActual, propietario.Pass, propietario.Salt))
         {
             return BadRequest("La contraseña actual es incorrecta.");
         }
 
-        // Hashea la nueva contraseña 
+        // Hashea el nuevo pass 
         var (nuevoPassHash, nuevaSalt) = PasswordUtils.HashPassword(pass.NuevoPass);
 
-        // Actualiza la contraseña y la sal en la base de datos
+        // Actualiza el pass y la sal en la base de datos
         propietario.Pass = nuevoPassHash;
         propietario.Salt = nuevaSalt;
 
@@ -336,19 +314,20 @@ public class PropietarioController : ControllerBase
         // Genera el token
         var token = GenerateJwtToken(propietario);
 
-        // Enlace para el restablecimiento de la contraseña
-        var resetLink = $"http://localhost:5000/restablecerPass?token={token}&email={dto.Email}";
+        // Enlace para restablecer el pass
+        var resetLink = $"http://192.168.1.2:5000/api/propietario/restablecePass?token={token}&email={dto.Email}";
 
-        // Crear instancia de Email y enviar el correo
-        var emailService = new Email();
-        await emailService.SendResetPasswordEmail(dto.Email, token); // Usa el método de la clase Email
+        //envia el correo
+
+        await _emailService.SendResetPasswordEmail(dto.Email, token); // Uso el método de la clase Email
 
         return Ok("Se ha enviado un correo para restablecer la contraseña.");
     }
 
 
-    [HttpPost("restablecerPass")]
-    public async Task<IActionResult> RestablecerPass([FromBody] RestablecerPass dto)
+
+    [HttpPost("restablecePass")]
+    public async Task<IActionResult> RestablecerPass([FromBody] RestablecePass dto)
     {
         // para obtener el token del encabezado de autorización
         var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
@@ -366,7 +345,7 @@ public class PropietarioController : ControllerBase
             return BadRequest("Token no válido o ha expirado.");
         }
 
-        // Hashea la nueva contraseña
+        // Hashea el nuevo pass
         var (nuevoPassHash, nuevaSalt) = PasswordUtils.HashPassword(dto.NuevaContrasena);
 
         propietario.Pass = nuevoPassHash;
@@ -400,9 +379,5 @@ public class PropietarioController : ControllerBase
         return expirationDate > DateTime.UtcNow; // Compara con la hora actual en UTC
     }
 
-    [HttpGet("otro-endpoint")]
-    public IActionResult OtroEndpoint()
-    {
-        return Ok("Este es otro endpoint.");
-    }
+
 }

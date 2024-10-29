@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiInmobiliariaAnNaTe.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20241012123159_NombreDeLaMigracion")]
-    partial class NombreDeLaMigracion
+    [Migration("20241025012129_Agregar")]
+    partial class Agregar
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,13 +33,10 @@ namespace ApiInmobiliariaAnNaTe.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("Desde")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("Estado")
-                        .HasColumnType("int");
+                        .HasColumnType("date");
 
                     b.Property<DateTime>("Hasta")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("date");
 
                     b.Property<int>("InmuebleId")
                         .HasColumnType("int");
@@ -48,21 +45,13 @@ namespace ApiInmobiliariaAnNaTe.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Monto")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<int?>("Pagos")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PropId")
-                        .HasColumnType("int");
+                        .HasColumnType("decimal(9,1)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("InmuebleId");
 
                     b.HasIndex("InquilinoId");
-
-                    b.HasIndex("PropId");
 
                     b.ToTable("Contratos");
                 });
@@ -93,30 +82,30 @@ namespace ApiInmobiliariaAnNaTe.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Latitud")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(12,7)");
 
                     b.Property<decimal>("Longitud")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(12,7)");
 
                     b.Property<decimal>("Precio")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(9,1)");
 
                     b.Property<decimal>("Superficie")
-                        .HasColumnType("decimal(65,30)");
-
-                    b.Property<string>("TipoDescripcion")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("decimal(6,1)");
 
                     b.Property<int>("TipoId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Uso")
+                    b.Property<int>("UsoInmuebleId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("IdPropietario");
+
+                    b.HasIndex("TipoId");
+
+                    b.HasIndex("UsoInmuebleId");
 
                     b.ToTable("Inmuebles");
                 });
@@ -165,21 +154,11 @@ namespace ApiInmobiliariaAnNaTe.Migrations
                     b.Property<int>("ContratoId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Detalle")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<bool?>("Estado")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<DateTime>("Fecha")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("FechaAnulacion")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("date");
 
                     b.Property<decimal>("Monto")
-                        .HasColumnType("decimal(65,30)");
+                        .HasColumnType("decimal(9,1)");
 
                     b.Property<int>("Nro")
                         .HasColumnType("int");
@@ -231,6 +210,40 @@ namespace ApiInmobiliariaAnNaTe.Migrations
                     b.ToTable("Propietarios");
                 });
 
+            modelBuilder.Entity("ApiInmobiliariaAnNaTe.Models.Tipo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Descripcion")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Tipos");
+                });
+
+            modelBuilder.Entity("ApiInmobiliariaAnNaTe.Models.UsoInmueble", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UsoInmuebles");
+                });
+
             modelBuilder.Entity("ApiInmobiliariaAnNaTe.Models.Contrato", b =>
                 {
                     b.HasOne("ApiInmobiliariaAnNaTe.Models.Inmueble", "Inmu")
@@ -245,17 +258,9 @@ namespace ApiInmobiliariaAnNaTe.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ApiInmobiliariaAnNaTe.Models.Propietario", "Prop")
-                        .WithMany()
-                        .HasForeignKey("PropId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Inmu");
 
                     b.Navigation("Inqui");
-
-                    b.Navigation("Prop");
                 });
 
             modelBuilder.Entity("ApiInmobiliariaAnNaTe.Models.Inmueble", b =>
@@ -266,7 +271,23 @@ namespace ApiInmobiliariaAnNaTe.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ApiInmobiliariaAnNaTe.Models.Tipo", "Tipo")
+                        .WithMany()
+                        .HasForeignKey("TipoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ApiInmobiliariaAnNaTe.Models.UsoInmueble", "UsoInmueble")
+                        .WithMany()
+                        .HasForeignKey("UsoInmuebleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("PropietarioInmueble");
+
+                    b.Navigation("Tipo");
+
+                    b.Navigation("UsoInmueble");
                 });
 
             modelBuilder.Entity("ApiInmobiliariaAnNaTe.Models.Pago", b =>

@@ -57,6 +57,8 @@ namespace ApiInmobiliariaAnNaTe.Migrations
                     Estado = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     Pass = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4"),
+                    Salt = table.Column<string>(type: "longtext", nullable: true)
+                        .Annotation("MySql:CharSet", "utf8mb4"),
                     Avatar = table.Column<string>(type: "longtext", nullable: true)
                         .Annotation("MySql:CharSet", "utf8mb4")
                 },
@@ -67,24 +69,51 @@ namespace ApiInmobiliariaAnNaTe.Migrations
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(
+                name: "Tipos",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Descripcion = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Tipos", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
+                name: "UsoInmuebles",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Nombre = table.Column<string>(type: "longtext", nullable: false)
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UsoInmuebles", x => x.Id);
+                })
+                .Annotation("MySql:CharSet", "utf8mb4");
+
+            migrationBuilder.CreateTable(
                 name: "Inmuebles",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Uso = table.Column<int>(type: "int", nullable: false),
+                    UsoInmuebleId = table.Column<int>(type: "int", nullable: false),
                     Direccion = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     TipoId = table.Column<int>(type: "int", nullable: false),
-                    TipoDescripcion = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4"),
                     Ambientes = table.Column<int>(type: "int", nullable: false),
-                    Latitud = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
-                    Longitud = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
-                    Superficie = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
-                    Precio = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    Latitud = table.Column<decimal>(type: "decimal(12,7)", nullable: false),
+                    Longitud = table.Column<decimal>(type: "decimal(12,7)", nullable: false),
+                    Superficie = table.Column<decimal>(type: "decimal(6,1)", nullable: false),
+                    Precio = table.Column<decimal>(type: "decimal(9,1)", nullable: false),
                     IdPropietario = table.Column<int>(type: "int", nullable: false),
-                    PropietarioInmuebleId = table.Column<int>(type: "int", nullable: true),
                     Estado = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     Foto = table.Column<string>(type: "longtext", nullable: false)
                         .Annotation("MySql:CharSet", "utf8mb4")
@@ -93,10 +122,23 @@ namespace ApiInmobiliariaAnNaTe.Migrations
                 {
                     table.PrimaryKey("PK_Inmuebles", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Inmuebles_Propietarios_PropietarioInmuebleId",
-                        column: x => x.PropietarioInmuebleId,
+                        name: "FK_Inmuebles_Propietarios_IdPropietario",
+                        column: x => x.IdPropietario,
                         principalTable: "Propietarios",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Inmuebles_Tipos_TipoId",
+                        column: x => x.TipoId,
+                        principalTable: "Tipos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Inmuebles_UsoInmuebles_UsoInmuebleId",
+                        column: x => x.UsoInmuebleId,
+                        principalTable: "UsoInmuebles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -106,14 +148,11 @@ namespace ApiInmobiliariaAnNaTe.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    Desde = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    Hasta = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    Estado = table.Column<int>(type: "int", nullable: false),
-                    Monto = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
+                    Desde = table.Column<DateTime>(type: "date", nullable: false),
+                    Hasta = table.Column<DateTime>(type: "date", nullable: false),
+                    Monto = table.Column<decimal>(type: "decimal(9,1)", nullable: false),
                     InquilinoId = table.Column<int>(type: "int", nullable: false),
-                    InmuebleId = table.Column<int>(type: "int", nullable: false),
-                    PropId = table.Column<int>(type: "int", nullable: false),
-                    Pagos = table.Column<int>(type: "int", nullable: true)
+                    InmuebleId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -130,12 +169,6 @@ namespace ApiInmobiliariaAnNaTe.Migrations
                         principalTable: "Inquilinos",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Contratos_Propietarios_PropId",
-                        column: x => x.PropId,
-                        principalTable: "Propietarios",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -146,13 +179,9 @@ namespace ApiInmobiliariaAnNaTe.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     Nro = table.Column<int>(type: "int", nullable: false),
-                    Fecha = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    Monto = table.Column<decimal>(type: "decimal(65,30)", nullable: false),
-                    ContratoId = table.Column<int>(type: "int", nullable: false),
-                    Estado = table.Column<bool>(type: "tinyint(1)", nullable: true),
-                    FechaAnulacion = table.Column<DateTime>(type: "datetime(6)", nullable: true),
-                    Detalle = table.Column<string>(type: "longtext", nullable: false)
-                        .Annotation("MySql:CharSet", "utf8mb4")
+                    Fecha = table.Column<DateTime>(type: "date", nullable: false),
+                    Monto = table.Column<decimal>(type: "decimal(9,1)", nullable: false),
+                    ContratoId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -177,14 +206,19 @@ namespace ApiInmobiliariaAnNaTe.Migrations
                 column: "InquilinoId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Contratos_PropId",
-                table: "Contratos",
-                column: "PropId");
+                name: "IX_Inmuebles_IdPropietario",
+                table: "Inmuebles",
+                column: "IdPropietario");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Inmuebles_PropietarioInmuebleId",
+                name: "IX_Inmuebles_TipoId",
                 table: "Inmuebles",
-                column: "PropietarioInmuebleId");
+                column: "TipoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Inmuebles_UsoInmuebleId",
+                table: "Inmuebles",
+                column: "UsoInmuebleId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Pagos_ContratoId",
@@ -209,6 +243,12 @@ namespace ApiInmobiliariaAnNaTe.Migrations
 
             migrationBuilder.DropTable(
                 name: "Propietarios");
+
+            migrationBuilder.DropTable(
+                name: "Tipos");
+
+            migrationBuilder.DropTable(
+                name: "UsoInmuebles");
         }
     }
 }

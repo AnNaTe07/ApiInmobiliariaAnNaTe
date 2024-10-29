@@ -93,12 +93,16 @@ namespace ApiInmobiliariaAnNaTe.Migrations
                     b.Property<int>("TipoId")
                         .HasColumnType("int");
 
-                    b.Property<int>("Uso")
+                    b.Property<int>("UsoInmuebleId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
                     b.HasIndex("IdPropietario");
+
+                    b.HasIndex("TipoId");
+
+                    b.HasIndex("UsoInmuebleId");
 
                     b.ToTable("Inmuebles");
                 });
@@ -220,6 +224,23 @@ namespace ApiInmobiliariaAnNaTe.Migrations
                     b.ToTable("Tipos");
                 });
 
+            modelBuilder.Entity("ApiInmobiliariaAnNaTe.Models.UsoInmueble", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UsoInmuebles");
+                });
+
             modelBuilder.Entity("ApiInmobiliariaAnNaTe.Models.Contrato", b =>
                 {
                     b.HasOne("ApiInmobiliariaAnNaTe.Models.Inmueble", "Inmu")
@@ -247,7 +268,23 @@ namespace ApiInmobiliariaAnNaTe.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ApiInmobiliariaAnNaTe.Models.Tipo", "Tipo")
+                        .WithMany()
+                        .HasForeignKey("TipoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ApiInmobiliariaAnNaTe.Models.UsoInmueble", "UsoInmueble")
+                        .WithMany()
+                        .HasForeignKey("UsoInmuebleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("PropietarioInmueble");
+
+                    b.Navigation("Tipo");
+
+                    b.Navigation("UsoInmueble");
                 });
 
             modelBuilder.Entity("ApiInmobiliariaAnNaTe.Models.Pago", b =>

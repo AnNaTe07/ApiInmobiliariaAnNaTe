@@ -5,7 +5,7 @@
 namespace ApiInmobiliariaAnNaTe.Migrations
 {
     /// <inheritdoc />
-    public partial class Tipo : Migration
+    public partial class Agregar : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

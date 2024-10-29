@@ -48,11 +48,18 @@ public class DataContext : DbContext
             entity.Property(p => p.Fecha)
                 .HasColumnType("date");
         });
-    }
+        modelBuilder.Entity<UsoInmueble>()
+      .HasKey(u => u.Id);
 
+        modelBuilder.Entity<Inmueble>()
+            .HasOne(i => i.UsoInmueble)
+            .WithMany()
+            .HasForeignKey(i => i.UsoInmuebleId);
+    }
     public DbSet<Contrato> Contratos { get; set; } = null;
     public DbSet<Pago> Pagos { get; set; } = null;
     public DbSet<Tipo> Tipos { get; set; }
+    public DbSet<UsoInmueble> UsoInmuebles { get; set; } = null;
 
     /* dotnet ef migrations add InitialCreate
  dotnet ef database update

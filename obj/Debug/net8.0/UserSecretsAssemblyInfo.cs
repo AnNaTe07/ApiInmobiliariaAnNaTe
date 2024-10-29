@@ -10,7 +10,7 @@
 using System;
 using System.Reflection;
 
-[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("088b1768-1cfe-4f32-8b7f-f90e8cb19ecb")]
+[assembly: Microsoft.Extensions.Configuration.UserSecrets.UserSecretsIdAttribute("miapp")]
 
 // Generado por la clase WriteCodeFragment de MSBuild.
 

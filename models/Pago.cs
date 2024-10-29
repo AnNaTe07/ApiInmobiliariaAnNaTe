@@ -14,8 +14,6 @@ public class Pago
     public int ContratoId { get; set; }
     [ForeignKey(nameof(ContratoId))]
     public Contrato Contrato { get; set; }
-    // public Usuario UsuPago { get; set; }
-    // public Usuario? UsuAnulacion { get; set; }
 
     public String? DireccionContrato => Contrato?.Inmu?.Direccion ?? "Dirección no disponible";
 

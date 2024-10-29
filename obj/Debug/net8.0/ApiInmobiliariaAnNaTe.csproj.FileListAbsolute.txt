@@ -2,6 +2,7 @@ C:\Users\Usuario\ApiInmobiliariaAnNaTe\bin\Debug\net8.0\appsettings.Development.
 C:\Users\Usuario\ApiInmobiliariaAnNaTe\bin\Debug\net8.0\appsettings.json
 C:\Users\Usuario\ApiInmobiliariaAnNaTe\bin\Debug\net8.0\utils\appinmobiliaria-2d959-firebase-adminsdk-mamq8-e9365e2599.json
 C:\Users\Usuario\ApiInmobiliariaAnNaTe\bin\Debug\net8.0\ApiInmobiliariaAnNaTe.exe
+C:\Users\Usuario\ApiInmobiliariaAnNaTe\bin\Debug\net8.0\ApiInmobiliariaAnNaTe.xml
 C:\Users\Usuario\ApiInmobiliariaAnNaTe\bin\Debug\net8.0\ApiInmobiliariaAnNaTe.deps.json
 C:\Users\Usuario\ApiInmobiliariaAnNaTe\bin\Debug\net8.0\ApiInmobiliariaAnNaTe.runtimeconfig.json
 C:\Users\Usuario\ApiInmobiliariaAnNaTe\bin\Debug\net8.0\ApiInmobiliariaAnNaTe.dll
@@ -136,4 +137,3 @@ C:\Users\Usuario\ApiInmobiliariaAnNaTe\obj\Debug\net8.0\refint\ApiInmobiliariaAn
 C:\Users\Usuario\ApiInmobiliariaAnNaTe\obj\Debug\net8.0\ApiInmobiliariaAnNaTe.pdb
 C:\Users\Usuario\ApiInmobiliariaAnNaTe\obj\Debug\net8.0\ApiInmobiliariaAnNaTe.genruntimeconfig.cache
 C:\Users\Usuario\ApiInmobiliariaAnNaTe\obj\Debug\net8.0\ref\ApiInmobiliariaAnNaTe.dll
-C:\Users\Usuario\ApiInmobiliariaAnNaTe\bin\Debug\net8.0\ApiInmobiliariaAnNaTe.xml

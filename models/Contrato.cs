@@ -18,4 +18,8 @@ public class Contrato
 
     public string DireccionInmueble => Inmu != null ? Inmu.Direccion : "Dirección no disponible";
 
+    /*  public bool EstaActivo()
+     {
+         return DateTime.Now >= Desde && DateTime.Now <= Hasta;
+     } */
 }

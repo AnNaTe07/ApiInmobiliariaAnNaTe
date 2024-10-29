@@ -7,8 +7,7 @@
     <UserSecretsId>088b1768-1cfe-4f32-8b7f-f90e8cb19ecb</UserSecretsId>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <DocumentationFile>bin\Debug\net8.0\ApiInmobiliariaAnNaTe.xml</DocumentationFile>
-
-
+    <UserSecretsId>miapp</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

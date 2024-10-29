@@ -2,16 +2,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ApiInmobiliariaAnNaTe.Models;
 
-public enum UsoInmueble
-{
-    Comercial = 1,
-    Residencial = 2
-}
 public class Inmueble
 {
     public int Id { get; set; }
-    public UsoInmueble Uso { get; set; }
+
+    [ForeignKey(nameof(UsoInmuebleId))]
+    public int UsoInmuebleId { get; set; }
+    public UsoInmueble UsoInmueble { get; set; }
     public string Direccion { get; set; } = "";
+
     [ForeignKey(nameof(TipoId))]
     public int TipoId { get; set; }
     public Tipo Tipo { get; set; }
@@ -23,11 +22,10 @@ public class Inmueble
     public int IdPropietario { get; set; }
     [ForeignKey(nameof(IdPropietario))]
     public Propietario PropietarioInmueble { get; set; }
-    public bool Estado { get; set; } = true;
+    public bool Estado { get; set; } = false;
     public String Foto { get; set; } = "";
+    [NotMapped]
+    public IFormFile FotoFile { get; set; } // Para recibir la foto
 
-    public bool EstaAlquilado(List<Contrato> contratos)
-    {
-        return contratos.Any(c => c.InmuebleId == this.Id && DateTime.Now >= c.Desde && DateTime.Now <= c.Hasta);
-    }
+
 }

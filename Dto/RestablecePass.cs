@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 
 namespace ApiInmobiliariaAnNaTe.Models;
-public class RestablecerPass
+public class RestablecePass
 {
     public string Token { get; set; }
     public string Email { get; set; }

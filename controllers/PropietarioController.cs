@@ -127,7 +127,6 @@ public class PropietarioController : ControllerBase
             propietarioLogin.Apellido = propietario.Apellido;
             propietarioLogin.Dni = propietario.Dni;
             propietarioLogin.Telefono = propietario.Telefono;
-            propietarioLogin.Email = propietario.Email;
 
             _context.Propietarios.Update(propietarioLogin);
 
@@ -327,10 +326,12 @@ public class PropietarioController : ControllerBase
 
 
     [HttpPost("restablecePass")]
+    [Authorize]
     public async Task<IActionResult> RestablecerPass([FromBody] RestablecePass dto)
     {
         // para obtener el token del encabezado de autorización
         var token = Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+        Console.WriteLine("Token recibido: " + token);
 
         var propietario = await _context.Propietarios.SingleOrDefaultAsync(x => x.Email == dto.Email);
 

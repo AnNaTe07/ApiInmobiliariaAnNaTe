@@ -150,6 +150,24 @@ public class InmuebleController : ControllerBase
             return BadRequest("No se ha seleccionado ningún archivo.");
         }
 
+        // Obtener el email del propietario desde las claims
+        var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+
+        if (string.IsNullOrEmpty(userEmail))
+        {
+            return Unauthorized("Usuario no autenticado.");
+        }
+
+        // Buscar el inmueble por ID y verificar que pertenece al propietario usando el email
+        var inmueble = await _context.Inmuebles
+            .Where(i => i.Id == id && i.PropietarioInmueble.Email == userEmail) // Comprobamos que el propietario sea el mismo
+            .FirstOrDefaultAsync();
+
+        if (inmueble == null)
+        {
+            return NotFound("Inmueble no encontrado o no pertenece al propietario.");
+        }
+
         // Para subir la imagen a Firebase usando el ID del inmueble
         string imageUrl;
         try
@@ -162,7 +180,7 @@ public class InmuebleController : ControllerBase
         }
 
         // Guarda la URL en la base de datos
-        var inmueble = await _context.Inmuebles.FindAsync(id);
+        inmueble = await _context.Inmuebles.FindAsync(id);
 
         if (inmueble == null)
         {
